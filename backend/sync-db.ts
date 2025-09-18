@@ -6,7 +6,7 @@ const MONGO_URL = 'mongodb://localhost:27017';
 const DB_NAME = 'aetheris_db';
 
 async function syncDetailedProducts() {
-  console.log('Iniciando sincronização detalhada (versão corrigida)...');
+  console.log('Iniciando sincronização detalhada...');
 
   try {
     const initialResponse = await axios.get(INPE_COLLECTIONS_URL);
@@ -62,5 +62,6 @@ async function syncDetailedProducts() {
     console.error('Ocorreu um erro durante a sincronização:', error);
   }
 }
+
 
 syncDetailedProducts();
