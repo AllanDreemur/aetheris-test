@@ -62,7 +62,7 @@ Pense nela como um **dicionário/enciclopédia** do projeto.
 ### Inserção dos dados
 Os dados são inseridos **exclusivamente pelo backend** através do script:  
 ```bash
-npx ts-node backend/sync-db.ts
+npm run dev
 ```
 
 Fluxo do script:
