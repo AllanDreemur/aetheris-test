@@ -18,7 +18,7 @@ npm i
 
 Antes de iniciar o servidor pela primeira vez, você precisa popular seu banco de dados local com os metadados das coleções do INPE. No prompt do backend, use o comando:
 ```bash
-npx ts-node sync-db.ts
+npm run init-db
 ```
 
 Para iniciar o servidor, abra um prompt na pasta do backend e use o comando:
