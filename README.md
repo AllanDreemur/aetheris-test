@@ -1,14 +1,7 @@
 # MongoDB:
 - Instalar o MongoDB Community Server;
 - Editar as variáveis de ambiente, adicionar na variável PATH C:\Program Files\MongoDB\Server\8.2\bin\
-- No MongoDB Compass criar o Database: 
-```bash
-aetheris-db 
-```
-E as coleções: 
-```bash
-data_products, location_cache e timeseries_cache;
-```
+
 
 # Instalação do projeto
 Dependências que precisam ser instaladas tanto no backend, quanto no frontend:
@@ -16,7 +9,7 @@ Dependências que precisam ser instaladas tanto no backend, quanto no frontend:
 npm i
 ```
 
-Antes de iniciar o servidor pela primeira vez, você precisa popular seu banco de dados local com os metadados das coleções do INPE. No prompt do backend, use o comando:
+Antes de iniciar o servidor pela primeira vez, você precisa criar as coleções, tabelas e popular seu banco de dados local com os metadados das coleções do INPE. No prompt do backend, use o comando:
 ```bash
 npm run init-db
 ```
