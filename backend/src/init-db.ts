@@ -5,37 +5,49 @@ const INPE_COLLECTIONS_URL = 'https://data.inpe.br/bdc/stac/v1/collections';
 const MONGO_URL = 'mongodb://localhost:27017';
 const DB_NAME = 'aetheris_db';
 
-async function syncDetailedProducts() {
-  console.log('Iniciando sincronização detalhada...');
+async function initializeDatabase() {
+  console.log('Iniciando script de inicialização do banco de dados...');
+  const client = new MongoClient(MONGO_URL);
 
   try {
-    const initialResponse = await axios.get(INPE_COLLECTIONS_URL);
-    const collections = initialResponse.data.collections;
-    console.log(`Encontradas ${collections.length} coleções na API.`);
-
-    const client = new MongoClient(MONGO_URL);
+    //Conexão com o MongoDB
     await client.connect();
     const db = client.db(DB_NAME);
+    console.log(`Conectado ao MongoDB. Usando o banco de dados: ${DB_NAME}`);
+
+    //Bloco para verificar e criar coleções
+    const requiredCollections = ['data_products', 'location_cache', 'timeseries_cache'];
+    const existingCollections = await db.listCollections().toArray();
+    const existingCollectionNames = existingCollections.map(c => c.name);
+
+    for (const collectionName of requiredCollections) {
+      if (!existingCollectionNames.includes(collectionName)) {
+        await db.createCollection(collectionName);
+        console.log(`Coleção "${collectionName}" criada com sucesso.`);
+      } else {
+        console.log(`Coleção "${collectionName}" já existe. Pulando criação.`);
+      }
+    }
+
+    //Lógica de Sincronização
+    console.log('Iniciando sincronização dos produtos de dados...');
     const productsCollection = db.collection('data_products');
-    console.log('Conectado ao MongoDB.');
+    
+    const initialResponse = await axios.get(INPE_COLLECTIONS_URL);
+    const collections = initialResponse.data.collections;
+    console.log(`Encontradas ${collections.length} coleções na API do INPE.`);
 
     await productsCollection.deleteMany({});
-    console.log('Coleção "data_products" antiga foi limpa.');
+    console.log('Coleção "data_products" limpa para receber dados atualizados.');
 
     const newProducts = [];
-
     for (const collection of collections) {
       try {
-        console.log(`Buscando detalhes para: ${collection.id}`);
         const detailUrl = `https://data.inpe.br/bdc/stac/v1/collections/${collection.id}`;
         const detailResponse = await axios.get(detailUrl);
         const collectionDetails = detailResponse.data;
-
-        // Tenta extrair as bandas da fonte que você identificou ('properties['eo:bands']').
-        // Se não encontrar, ele tenta o método antigo ('cube:dimensions') como um fallback.
-        const detailedBands = collectionDetails.properties?.['eo:bands'] || 
-                            collectionDetails['cube:dimensions']?.bands?.values || 
-                            [];
+        
+        const detailedBands = collectionDetails.properties?.['eo:bands'] || collectionDetails['cube:dimensions']?.bands?.values || [];
 
         newProducts.push({
           productName: collectionDetails.id,
@@ -43,7 +55,6 @@ async function syncDetailedProducts() {
           description: collectionDetails.description,
           variables: detailedBands 
         });
-
       } catch (e) {
         console.error(`Falha ao buscar detalhes para ${collection.id}. Pulando.`);
       }
@@ -56,11 +67,12 @@ async function syncDetailedProducts() {
       console.log('Nenhum produto para inserir.');
     }
 
-    await client.close();
-
   } catch (error) {
-    console.error('Ocorreu um erro durante a sincronização:', error);
+    console.error('Ocorreu um erro durante a inicialização:', error);
+  } finally {
+    await client.close();
+    console.log('Conexão com o MongoDB fechada. Script finalizado.');
   }
 }
 
-syncDetailedProducts();
+initializeDatabase();
